@@ -1,0 +1,161 @@
+<!-- templates/labels/print_reprinted_labels.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Перепечатка просроченных продуктов</title>
+    <style>
+        @media print {
+            @page {
+                margin: 0.5cm;
+                size: 56mm 56mm;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: Arial, sans-serif;
+                font-size: 12px;
+                width: 56mm;
+            }
+            .label-container {
+                page-break-after: always;
+                margin-bottom: 0.5cm;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+        
+        .label-container {
+            border: 0px solid #000;
+            padding: 8px;
+            margin-bottom: 10px;
+            width: 56mm;
+            height: 56mm;
+            text-align: center;
+        }
+        
+        .product-name {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .label-section {
+            margin: 6px 0;
+            padding: 4px 0;
+            border-bottom: 1px dashed #ccc;
+        }
+        
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+        
+        .label-title {
+            font-weight: bold;
+            text-align: left;
+        }
+        
+        .label-value {
+            text-align: right;
+        }
+        
+        .datetime {
+            font-weight: bold;
+        }
+        
+        .footer {
+            margin-top: 8px;
+            font-size: 10px;
+            border-top: 1px solid #000;
+            padding-top: 4px;
+        }
+    </style>
+</head>
+<body onload="window.print()">
+    {% for label_data in labels_data %}
+    <div class="label-container">
+        <div class="product-name">
+            {{ label_data.name }}
+        </div>
+        
+        <div class="label-section">
+            <div class="label-row">
+                <span class="label-title">Дата и время маркировки:</span>
+            </div>
+            <div class="label-value datetime">{{ label_data.print_time|date:"d.m.Y H:i" }}</div>
+        </div>
+        
+        <div class="label-section">
+            <div class="label-row">
+                <span class="label-title">Температура хранения:</span>
+                <span class="label-value">{{ label_data.storage_temperature }}</span>
+            </div>
+            <div class="label-row">
+                <span class="label-title">Срок хранения:</span>
+                <span class="label-value">{{ label_data.get_storage_period_text }}</span>
+            </div>
+        </div>
+        
+        <div class="label-section">
+            <div class="label-row">
+                <span class="label-title">Годен до:</span>
+            </div>
+            <div class="label-value datetime">{{ label_data.expiration_time|date:"d.m.Y H:i" }}</div>
+        </div>
+        
+        <div class="footer">
+            <div>Маркировал: {{ label_data.marking_person }}</div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <div class="no-print" style="text-align: center; margin-top: 20px;">
+        <button onclick="window.print()" style="padding: 10px 20px; margin: 5px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            🖨️ Печать ({{ total_count }} шт.)
+        </button>
+        <button onclick="closeAndRefresh()" style="padding: 10px 20px; margin: 5px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            ❌ Закрыть
+        </button>
+    </div>
+    
+    <script>
+    // Автоматическая печать при загрузке
+    window.onload = function() {
+        setTimeout(function() {
+            window.print();
+        }, 300);
+    };
+    
+    // Функция для возврата с обновлением
+    function closeAndRefresh() {
+        console.log('🔄 Возврат с обновлением');
+        
+        // Получаем URL предыдущей страницы
+        const referrer = document.referrer;
+        
+        if (referrer) {
+            // Если есть referrer - добавляем параметр и переходим
+            const url = new URL(referrer);
+            url.searchParams.set('from_print', 'true');
+            window.location.href = url.toString();
+        } else {
+            // Если нет referrer - перезагружаем страницу просроченных
+            window.location.href = "{% url 'expired_products' %}?establishment={{ establishment.id }}&from_print=true";
+        }
+    }
+    
+    // После печати возвращаемся с обновлением
+    window.onafterprint = function() {
+        console.log('🖨️ Печать завершена');
+        setTimeout(function() {
+            closeAndRefresh();
+        }, 50000);
+    };
+    </script>
+</body>
+</html>

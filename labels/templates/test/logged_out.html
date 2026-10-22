@@ -1,0 +1,10 @@
+{% extends 'labels/base.html' %}
+
+{% block content %}
+<div class="form-section">
+    <h2>Выход выполнен</h2>
+    <p>Вы успешно вышли из системы.</p>
+    <a href="{% url 'login' %}" class="btn btn-primary">Войти снова</a>
+    <a href="{% url 'home' %}" class="btn btn-secondary">На главную</a>
+</div>
+{% endblock %}

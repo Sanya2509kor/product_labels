@@ -1,0 +1,68 @@
+{% extends 'labels/base.html' %}
+
+{% block title %}Удалить сотрудника - {{ establishment.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-trash me-2"></i>
+                        Удалить сотрудника
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Внимание!
+                        </h5>
+                        <p class="mb-0">Вы собираетесь удалить сотрудника:</p>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ employee.name }}</h5>
+                            <p class="card-text mb-1">
+                                <strong>Должность:</strong> {{ employee.position|default:"Не указана" }}
+                            </p>
+                            <p class="card-text mb-1">
+                                <strong>Статус:</strong> 
+                                <span class="badge {% if employee.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ employee.is_active|yesno:"Активен,Неактивен" }}
+                                </span>
+                            </p>
+                            <p class="card-text mb-0">
+                                <strong>Добавлен:</strong> {{ employee.created_at|date:"d.m.Y H:i" }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-danger">
+                        <h6 class="alert-heading">Последствия удаления:</h6>
+                        <ul class="mb-0">
+                            <li>Сотрудник будет полностью удален из системы</li>
+                            <li>На существующих маркировках вместо имени сотрудника будет отображаться имя создателя маркировки</li>
+                            <li>Действие нельзя отменить</li>
+                        </ul>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Да, удалить сотрудника
+                            </button>
+                            <a href="{% url 'employee_list' establishment.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

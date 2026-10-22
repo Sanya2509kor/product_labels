@@ -1,0 +1,74 @@
+{% extends 'labels/base.html' %}
+
+{% block title %}Удалить категорию - {{ establishment.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-trash me-2"></i>
+                        Удалить категорию
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Внимание!
+                        </h5>
+                        <p class="mb-0">Вы собираетесь удалить категорию:</p>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ category.name }}</h5>
+                            <p class="card-text mb-1">
+                                <strong>Цвет:</strong> 
+                                <span class="badge" style="background-color: {{ category.color }}; color: white;">
+                                    {{ category.color }}
+                                </span>
+                            </p>
+                            <p class="card-text mb-1">
+                                <strong>Порядок:</strong> {{ category.order }}
+                            </p>
+                            <p class="card-text mb-1">
+                                <strong>Статус:</strong> 
+                                <span class="badge {% if category.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ category.is_active|yesno:"Активна,Неактивна" }}
+                                </span>
+                            </p>
+                            <p class="card-text mb-0">
+                                <strong>Создана:</strong> {{ category.created_at|date:"d.m.Y H:i" }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-danger">
+                        <h6 class="alert-heading">Последствия удаления:</h6>
+                        <ul class="mb-0">
+                            <li>Категория будет полностью удалена из системы</li>
+                            <li>Все маркировки этой категории станут без категории</li>
+                            <li>Действие нельзя отменить</li>
+                        </ul>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Да, удалить категорию
+                            </button>
+                            <a href="{% url 'category_list' establishment.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

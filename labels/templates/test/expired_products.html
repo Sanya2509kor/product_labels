@@ -1,0 +1,758 @@
+{% extends 'labels/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <i class="fas fa-exclamation-triangle text-danger"></i> 
+                    Просроченные продукты
+                </h1>
+                <div>
+                    {% if current_establishment and filtered_expired %}
+                    <button type="button" class="btn btn-success me-2" onclick="reprintAll()">
+                        <i class="fas fa-print me-1"></i>Перепечатать все
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteAll()">
+                        <i class="fas fa-trash-alt me-1"></i>Удалить все
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Переключатель заведений -->
+            {% if user_establishments %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <label class="fw-bold">Заведение:</label>
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-select" id="establishmentSelect" onchange="changeEstablishment(this.value)">
+                                <option value="">Выберите заведение</option>
+                                {% for est in user_establishments %}
+                                <option value="{{ est.id }}" {% if current_establishment and current_establishment.id == est.id %}selected{% endif %}>
+                                    {{ est.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if current_establishment %}
+                <!-- Левая колонка - меню категорий -->
+                <div class="row">
+                    <div class="col-md-3 col-lg-2">
+                        <div class="card categories-menu">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-list me-2"></i>Категории
+                                </h6>
+                                {% if filtered_expired %}
+                                <button class="btn btn-sm btn-outline-danger" onclick="confirmDeleteAll()" title="Удалить все просроченные">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="list-group list-group-flush">
+                                    <!-- Все просроченные -->
+                                    <a href="?establishment={{ current_establishment.id }}&category=all" 
+                                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {% if selected_category.id == 'all' %}active{% endif %}">
+                                        <div>
+                                            <i class="fas fa-th-large me-2"></i>
+                                            Все просроченные
+                                        </div>
+                                        <span class="badge bg-danger rounded-pill">{{ expired_products.count }}</span>
+                                    </a>
+                                    
+                                    <!-- Без категории -->
+                                    <a href="?establishment={{ current_establishment.id }}&category=uncategorized" 
+                                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {% if selected_category.id == 'uncategorized' %}active{% endif %}">
+                                        <div>
+                                            <i class="fas fa-question-circle me-2"></i>
+                                            Без категории
+                                        </div>
+                                        <span class="badge bg-secondary rounded-pill">{{ uncategorized_count|default:0 }}</span>
+                                    </a>
+                                    
+                                    <!-- Разделитель -->
+                                    <div class="list-group-item bg-light">
+                                        <small class="text-muted">КАТЕГОРИИ</small>
+                                    </div>
+                                    
+                                    <!-- Список категорий -->
+                                    {% for category in categories %}
+                                    <a href="?establishment={{ current_establishment.id }}&category={{ category.id }}" 
+                                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {% if selected_category.id == category.id %}active{% endif %}"
+                                       style="{% if selected_category.id == category.id %}background-color: {{ category.color }}20; border-left: 4px solid {{ category.color }};{% else %}border-left: 4px solid {{ category.color }};{% endif %}">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-tag me-2" style="color: {{ category.color }};"></i>
+                                            <span class="category-name">{{ category.name }}</span>
+                                        </div>
+                                        <span class="badge rounded-pill" style="background-color: {{ category.color }}; color: white;">
+                                            {{ category_counts|get_item:category.id|default:0 }}
+                                        </span>
+                                    </a>
+                                    {% empty %}
+                                    <div class="list-group-item text-center text-muted">
+                                        <small>Категории не созданы</small>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Основная область с карточками просроченных продуктов -->
+                    <div class="col-md-9 col-lg-10">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">
+                                {% if selected_category.id == 'all' %}
+                                    <i class="fas fa-th-large me-2"></i>Все просроченные
+                                {% elif selected_category.id == 'uncategorized' %}
+                                    <i class="fas fa-question-circle me-2"></i>Без категории
+                                {% else %}
+                                    <i class="fas fa-tag me-2" style="color: {{ selected_category.color }};"></i>{{ selected_category.name }}
+                                {% endif %}
+                                <span class="badge bg-danger ms-2">
+                                    {{ filtered_expired|length }}
+                                </span>
+                            </h5>
+                            {% if filtered_expired %}
+                            <button type="button" class="btn btn-sm btn-danger" onclick="confirmDeleteAll()">
+                                <i class="fas fa-trash-alt me-1"></i>Удалить все просроченные
+                            </button>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Сетка карточек просроченных продуктов - по 5 в ряд -->
+                        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
+                            {% if filtered_expired %}
+                                {% for product in filtered_expired %}
+                                <div class="col">
+                                    <div class="card expired-card h-100">
+                                        <div class="card-body d-flex flex-column">
+                                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                                <div class="expired-name" title="{{ product.name }}">
+                                                    <strong>{{ product.name }}</strong>
+                                                    {% if product.category %}
+                                                    <span class="category-badge" style="background-color: {{ product.category.color }};">
+                                                        {{ product.category.name }}
+                                                    </span>
+                                                    {% endif %}
+                                                </div>
+                                                <!-- <span class="badge bg-danger">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    {{ product.expiration_time|timesince }}
+                                                </span> -->
+                                            </div>
+                                            
+                                            <div class="expired-details mt-1">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-thermometer-half me-1"></i>
+                                                    {{ product.storage_temperature }}
+                                                </small>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    Срок: {{ product.get_storage_period_text }}
+                                                </small>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar-plus me-1"></i>
+                                                    Печать: {{ product.printed_at|date:"d.m.Y H:i" }}
+                                                </small>
+                                                <small class="text-danger">
+                                                    <i class="fas fa-calendar-times me-1"></i>
+                                                    Истек: {{ product.expiration_time|date:"d.m.Y H:i" }}
+                                                </small>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-user me-1"></i>
+                                                    {% if product.employee %}
+                                                    {{ product.employee.name }}
+                                                    {% else %}
+                                                    {{ product.user.get_full_name|default:product.user.username }}
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-transparent border-0 pt-0">
+                                            <form method="post" action="{% url 'delete_expired_product' product.id %}" 
+                                                onsubmit="return confirm('Вы уверены, что хотите удалить продукт &quot;{{ product.name }}&quot; из просроченных?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                                    <i class="fas fa-trash-alt me-1"></i>Удалить
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="col-12 text-center py-5">
+                                    <i class="fas fa-check-circle text-success" style="font-size: 48px;"></i>
+                                    <h4 class="mt-3">Просроченных продуктов нет</h4>
+                                    <p class="text-muted">Все продукты в сроке годности</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    Выберите заведение для просмотра просроченных продуктов
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для подтверждения удаления всех -->
+<div class="modal" id="deleteAllModal" tabindex="-1" style="display: none;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Удалить все просроченные продукты?
+                </h5>
+                <button type="button" class="btn-close btn-close-white" onclick="closeModal()" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить <strong>все просроченные продукты</strong> в заведении <strong>"{{ current_establishment.name }}"</strong>?</p>
+                <p class="text-danger"><small>Это действие нельзя отменить.</small></p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Будет удалено <strong>{{ filtered_expired|length }}</strong> просроченных продуктов.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+                <form method="post" action="{% url 'delete_all_expired' %}?establishment={{ current_establishment.id }}" id="deleteAllForm">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1"></i>Удалить все
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Затемнение фона -->
+<div class="modal-backdrop" id="modalBackdrop" style="display: none;"></div>
+
+<script>
+
+// Добавьте эту функцию в блок <script>
+function reprintAll() {
+    {% if filtered_expired %}
+    if (confirm('Вы уверены, что хотите перепечатать все просроченные продукты как новые маркировки?\n\nБудут созданы новые маркировки с текущей датой.')) {
+        window.location.href = "{% url 'reprint_expired_products' %}?establishment={{ current_establishment.id }}";
+    }
+    {% else %}
+    alert('Нет просроченных продуктов для перепечатки');
+    {% endif %}
+}
+
+function changeEstablishment(establishmentId) {
+    if (establishmentId) {
+        window.location.href = `?establishment=${establishmentId}`;
+    }
+}
+
+function confirmDeleteAll() {
+    {% if filtered_expired %}
+    const modal = document.getElementById('deleteAllModal');
+    const backdrop = document.getElementById('modalBackdrop');
+    
+    if (modal && backdrop) {
+        // Показываем элементы
+        modal.style.display = 'block';
+        backdrop.style.display = 'block';
+        
+        // Запускаем анимацию через setTimeout
+        setTimeout(function() {
+            modal.classList.add('show');
+            backdrop.classList.add('show');
+        }, 10);
+        
+        document.body.classList.add('modal-open');
+    }
+    {% else %}
+    alert('Нет просроченных продуктов для удаления');
+    {% endif %}
+}
+
+function closeModal() {
+    const modal = document.getElementById('deleteAllModal');
+    const backdrop = document.getElementById('modalBackdrop');
+    
+    if (modal && backdrop) {
+        // Убираем классы анимации
+        modal.classList.remove('show');
+        backdrop.classList.remove('show');
+        
+        // Скрываем элементы после анимации
+        setTimeout(function() {
+            modal.style.display = 'none';
+            backdrop.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }, 150);
+    }
+}
+
+// Закрытие при клике на фон (backdrop)
+document.addEventListener('DOMContentLoaded', function() {
+    const backdrop = document.getElementById('modalBackdrop');
+    if (backdrop) {
+        backdrop.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    }
+    
+    // Закрытие по клавише ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('deleteAllModal');
+            if (modal && modal.style.display === 'block') {
+                closeModal();
+            }
+        }
+    });
+    
+    // Предотвращаем закрытие при клике внутри модального окна
+    const modalContent = document.querySelector('.modal-content');
+    if (modalContent) {
+        modalContent.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+});
+
+// Автообновление каждые 60 секунд
+setTimeout(function() {
+    window.location.reload();
+}, 60000);
+</script>
+
+<style>
+/* Замените блок стилей для карточек на этот */
+
+/* Стили для карточек просроченных продуктов */
+.expired-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 8px;
+    min-height: 250px; /* Увеличили высоту */
+    border-left: 4px solid #dc3545;
+    display: flex;
+    flex-direction: column;
+}
+
+.expired-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(220, 53, 69, 0.15);
+}
+
+.expired-card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem;
+}
+
+.expired-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+
+.expired-name strong {
+    display: block;
+    font-size: 0.95rem;
+}
+
+.expired-details {
+    flex: 1;
+    margin-top: 4px;
+}
+
+.expired-details small {
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+    display: block;
+    line-height: 1.3;
+}
+
+.expired-details .text-danger {
+    font-weight: 500;
+}
+
+.expired-card .card-footer {
+    padding: 0.5rem 0.75rem 0.75rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    background: transparent;
+    margin-top: auto;
+}
+
+.expired-card .btn-outline-danger {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+}
+
+.expired-card .btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Бейджи в карточках */
+.expired-card .badge {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.expired-card .badge.bg-danger {
+    font-size: 0.6rem;
+    white-space: nowrap;
+}
+
+/* Категория в карточке */
+.expired-card .category-badge {
+    display: inline-block;
+    margin-top: 2px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 0.55rem;
+    color: white;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .categories-menu {
+        position: relative;
+        top: 0;
+        margin-bottom: 20px;
+    }
+    
+    .expired-card {
+        min-height: 180px;
+    }
+}
+
+@media (max-width: 576px) {
+    .expired-card {
+        min-height: 160px;
+    }
+    
+    .expired-name {
+        font-size: 0.8rem;
+    }
+    
+    .expired-details small {
+        font-size: 0.7rem;
+    }
+}
+
+/* Кастомный скролл для меню категорий */
+.categories-menu .card-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.categories-menu .card-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+.categories-menu .card-body::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 2px;
+}
+
+.categories-menu .card-body::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Анимация карточек */
+.expired-card {
+    animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Стили для модального окна (без Bootstrap JS) */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    outline: 0;
+    z-index: 1050;
+}
+
+.modal.show {
+    display: block;
+}
+
+.modal-dialog {
+    position: relative;
+    width: auto;
+    margin: 1.75rem auto;
+    max-width: 500px;
+    pointer-events: none;
+    transform: translate(0, -50px);
+    transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: translate(0, 0);
+}
+
+.modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0,0,0,.2);
+    border-radius: 0.3rem;
+    outline: 0;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+}
+
+.modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1rem 1rem;
+    border-bottom: 1px solid #dee2e6;
+    border-top-left-radius: 0.3rem;
+    border-top-right-radius: 0.3rem;
+}
+
+.modal-header .btn-close {
+    padding: 0.5rem 0.5rem;
+    margin: -0.5rem -0.5rem -0.5rem auto;
+    background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+    border: 0;
+    border-radius: 0.25rem;
+    opacity: .5;
+    width: 1em;
+    height: 1em;
+    cursor: pointer;
+}
+
+.modal-header .btn-close:hover {
+    opacity: .75;
+}
+
+.modal-body {
+    position: relative;
+    flex: 1 1 auto;
+    padding: 1rem;
+}
+
+.modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.75rem;
+    border-top: 1px solid #dee2e6;
+    border-bottom-right-radius: 0.3rem;
+    border-bottom-left-radius: 0.3rem;
+}
+
+.modal-footer > * {
+    margin: 0.25rem;
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    z-index: 1040;
+}
+
+.modal-backdrop.fade {
+    opacity: 0;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5;
+}
+
+.modal-open {
+    overflow: hidden;
+}
+
+.modal-open .modal {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+@media (min-width: 576px) {
+    .modal-dialog {
+        max-width: 500px;
+        margin: 1.75rem auto;
+    }
+}
+
+/* Стили для модального окна */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    outline: 0;
+    z-index: 1050;
+}
+
+.modal.show {
+    display: block;
+}
+
+.modal-dialog {
+    position: relative;
+    width: auto;
+    margin: 1.75rem auto;
+    max-width: 500px;
+    pointer-events: none;
+    min-height: calc(100% - 3.5rem);
+    display: flex;
+    align-items: center;
+}
+
+.modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0,0,0,.2);
+    border-radius: 0.3rem;
+    outline: 0;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    transform: translate(0, -50px);
+    transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-content {
+    transform: translate(0, 0);
+}
+
+.modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1rem 1rem;
+    border-bottom: 1px solid #dee2e6;
+    border-top-left-radius: 0.3rem;
+    border-top-right-radius: 0.3rem;
+}
+
+.modal-header .btn-close {
+    padding: 0.5rem 0.5rem;
+    margin: -0.5rem -0.5rem -0.5rem auto;
+    background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+    border: 0;
+    border-radius: 0.25rem;
+    opacity: .5;
+    width: 1em;
+    height: 1em;
+    cursor: pointer;
+}
+
+.modal-header .btn-close:hover {
+    opacity: .75;
+}
+
+.modal-body {
+    position: relative;
+    flex: 1 1 auto;
+    padding: 1rem;
+}
+
+.modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.75rem;
+    border-top: 1px solid #dee2e6;
+    border-bottom-right-radius: 0.3rem;
+    border-bottom-left-radius: 0.3rem;
+}
+
+.modal-footer > * {
+    margin: 0.25rem;
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    z-index: 1040;
+    opacity: 0;
+    transition: opacity 0.15s linear;
+    display: none;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5;
+    display: block;
+}
+
+.modal-open {
+    overflow: hidden;
+}
+
+/* Адаптивность */
+@media (min-width: 576px) {
+    .modal-dialog {
+        max-width: 500px;
+        margin: 1.75rem auto;
+    }
+}
+
+@media (max-width: 576px) {
+    .modal-dialog {
+        margin: 0.5rem;
+        min-height: calc(100% - 1rem);
+    }
+}
+</style>
+{% endblock %}

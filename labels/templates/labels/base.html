@@ -1,0 +1,586 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ===== FAVICON ===== -->
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon/favicon.ico' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon/favicon-16x16.png' %}">
+    
+    <!-- Для iOS -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-touch-icon.png' %}">
+    
+    <!-- Для Android -->
+    <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}">
+    
+    <!-- Цвет темы браузера (для мобильных) -->
+    <meta name="theme-color" content="#0d6efd">
+    <!-- Запрет кеширования -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>{% block title %}FoodSafe - Система маркировки продуктов{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'labels/style.css' %}">
+    <!-- ПРОВЕРКА URL ПАРАМЕТРА ПРИ ЗАГРУЗКЕ -->
+    <!-- <script>
+    (function() {
+        // Проверяем параметр в URL
+        if (window.location.search.includes('from_print=true')) {
+            console.log('🔄 Обнаружен параметр from_print! Перезагрузка...');
+            // Удаляем параметр из URL
+            const url = new URL(window.location.href);
+            url.searchParams.delete('from_print');
+            window.history.replaceState({}, '', url.toString());
+            // Перезагружаем страницу
+            location.reload(true);
+        }
+    })();
+    </script> -->
+    
+</head>
+<style>
+    /* Кнопка «Приложение» в шапке */
+    .app-connect-btn {
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        color: #fff !important;
+        border-radius: 24px;
+        padding: 6px 16px !important;
+        margin: 0 6px;
+        font-weight: 700;
+        box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+    }
+
+    .app-connect-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(255, 107, 53, 0.6);
+        background: linear-gradient(135deg, #ff7d4d 0%, #ffa733 100%);
+    }
+
+    .app-connect-btn i {
+        font-size: 14px;
+    }
+  </style>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand" href="{% url 'home' %}">
+                    <i class="fas fa-tags me-2"></i>
+                    <span class="brand-text">FoodSafe</span>
+                </a>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Переключить навигацию">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        {% if user.is_authenticated %}
+                            {% if user_establishments and user_establishments|length > 0 %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle establishment-selector" href="#" 
+                                   id="establishmentDropdown" role="button" 
+                                   data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                                   aria-expanded="false">
+                                    <i class="fas fa-store me-1"></i>
+                                    {% if current_establishment %}
+                                        {{ current_establishment.name }}
+                                    {% else %}
+                                        Выберите заведение
+                                    {% endif %}
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="establishmentDropdown">
+                                    {% for establishment in user_establishments %}
+                                    <li>
+                                        <a class="dropdown-item {% if current_establishment and current_establishment.id == establishment.id %}active{% endif %}"
+                                           href="{% url 'home' %}?establishment={{ establishment.id }}">
+                                            <i class="fas fa-store me-2"></i>
+                                            {{ establishment.name }}
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-primary" href="{% url 'create_establishment' %}">
+                                            <i class="fas fa-plus-circle me-2"></i>
+                                            Создать новое
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-success" href="{% url 'join_establishment' %}">
+                                            <i class="fas fa-user-plus me-2"></i>
+                                            Присоединиться
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            {% endif %}
+                        {% endif %}
+                    </ul>
+                    
+                    <!-- В base.html в блоке navbar-nav -->
+                    <ul class="navbar-nav">
+                        {% if user.is_authenticated %}
+                            {% if user.is_authenticated and current_establishment %}
+                                <!-- ВЫБОР СОТРУДНИКА - новый улучшенный блок -->
+                                <li class="nav-item dropdown" id="employeeNavDropdown">
+                                    <a class="nav-link dropdown-toggle {% if current_employee %}text-success{% else %}text-warning{% endif %}" 
+                                    href="#" id="employeeDropdown" role="button" 
+                                    data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                                    aria-expanded="false">
+                                        <i class="fas {% if current_employee %}fa-user-check{% else %}fa-user-clock{% endif %} me-1"></i>
+                                        {% if current_employee %}
+                                            {{ current_employee.name }}
+                                        {% else %}
+                                            Выберите сотрудника
+                                        {% endif %}
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="employeeDropdown" id="employeeDropdownMenu">
+                                        <li><h6 class="dropdown-header">Выберите сотрудника</h6></li>
+                                        {% if employees %}
+                                            {% for emp in employees %}
+                                                <li>
+                                                    <a class="dropdown-item employee-select-item {% if current_employee and current_employee.id == emp.id %}active bg-success text-white{% endif %}" 
+                                                    href="#" 
+                                                    data-employee-id="{{ emp.id }}"
+                                                    data-employee-name="{{ emp.name }}">
+                                                        <i class="fas fa-user me-2"></i>
+                                                        {{ emp.name }}
+                                                        {% if emp.position %}
+                                                            <small class="text-muted d-block ms-4">{{ emp.position }}</small>
+                                                        {% endif %}
+                                                        {% if current_employee and current_employee.id == emp.id %}
+                                                            <span class="badge bg-success ms-2">Активен</span>
+                                                        {% endif %}
+                                                    </a>
+                                                </li>
+                                            {% endfor %}
+                                            {% if current_employee %}
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="#" id="stopEmployeeSession">
+                                                        <i class="fas fa-stop me-2"></i>Завершить сессию
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                        {% else %}
+                                            <li>
+                                                <a class="dropdown-item text-muted" href="{% url 'employee_list' current_establishment.id %}">
+                                                    <i class="fas fa-plus me-2"></i>Добавить сотрудников
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </li>
+                            {% endif %}
+                            
+                            <!-- Корзина -->
+                            {% if user.is_authenticated and current_establishment %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'cart_view' %}?establishment={{ current_establishment.id }}">
+                                        <i class="fas fa-shopping-cart me-1"></i>
+                                        Корзина
+                                        <span class="cart-counter badge bg-primary ms-1">
+                                            {{ cart_count|default:0 }}
+                                        </span>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <!-- Сотрудники (ссылка на управление) -->
+                            {% if user.is_authenticated and current_establishment %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'employee_list' current_establishment.id %}">
+                                    <i class="fas fa-user-cog me-1"></i>
+                                    Управление
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li class="nav-item">
+                                <a class="nav-link app-connect-btn" href="{% url 'app_connect' %}">
+                                    <i class="fas fa-mobile-alt me-1"></i>
+                                    Приложение
+                                </a>
+                            </li>
+                            
+                            <!-- Пользователь -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle user-menu" href="#" 
+                                id="userDropdown" role="button" 
+                                data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                                aria-expanded="false">
+                                    <i class="fas fa-user-circle me-1"></i>
+                                    {{ user.username }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li>
+                                        <span class="dropdown-item-text">
+                                            <small>Вы вошли как</small><br>
+                                            <strong>{{ user.get_full_name|default:user.username }}</strong>
+                                        </span>
+                                    </li>
+                                    {% if current_establishment %}
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{% url 'print_page' current_establishment.id %}"
+                                        style="background: linear-gradient(135deg, #0d6efd, #6610f2);
+                                                color: white !important; border-radius: 20px;
+                                                padding: 6px 16px !important; font-weight: 700;
+                                                margin-left: 6px;">
+                                            <i class="fas fa-print me-1"></i>
+                                            Печать с телефона
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="post" action="{% url 'logout' %}" class="d-inline w-100">
+                                            {% csrf_token %}
+                                            <button type="submit" class="dropdown-item">
+                                                <i class="fas fa-sign-out-alt me-2"></i>
+                                                Выйти
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a href="{% url 'login' %}" class="btn btn-outline-light me-2">
+                                    <i class="fas fa-sign-in-alt me-1"></i>
+                                    Войти
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'register' %}" class="btn btn-primary">
+                                    <i class="fas fa-user-plus me-1"></i>
+                                    Регистрация
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <!-- Main Content -->
+    <main class="app-main">
+        <div class="container-fluid">
+            {% if messages %}
+                <div class="messages-container">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="alert-icon 
+                                    {% if message.tags == 'success' %}fas fa-check-circle
+                                    {% elif message.tags == 'error' %}fas fa-exclamation-circle
+                                    {% else %}fas fa-info-circle{% endif %} 
+                                    me-2"></i>
+                                <div class="flex-grow-1">{{ message }}</div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <span class="text-muted">&copy; 2026 FoodSafe. Система маркировки продуктов</span>
+                </div>
+                <div class="col-md-4 text-center">
+                    <a href="https://disk.yandex.ru/d/s43_azI6fwMQaw" target="_blank" class="btn btn-primary btn-sm">
+                        📁 Драйвер
+                    </a>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <span style="color: red;">По всем предложениям и вопросам пишите на почту Korchemkins0@yandex.ru</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    // Определяем часовой пояс и смещение браузера
+    function detectTimezone() {
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const now = new Date();
+        const offset = -now.getTimezoneOffset();
+        
+        document.cookie = `browser_timezone=${timezone}; path=/; max-age=86400`;
+        document.cookie = `browser_offset=${offset}; path=/; max-age=86400`;
+    }
+    document.addEventListener('DOMContentLoaded', detectTimezone);
+
+    // Простой скрипт для закрытия мобильного меню при клике на ссылку
+    document.addEventListener('DOMContentLoaded', function() {
+        const navbarToggler = document.querySelector('.navbar-toggler');
+        const navbarCollapse = document.querySelector('.navbar-collapse');
+        
+        document.querySelectorAll('.nav-link:not(.dropdown-toggle)').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth < 992 && navbarCollapse.classList.contains('show')) {
+                    navbarToggler.click();
+                }
+            });
+        });
+    });
+
+    // Перехватываем клики по кнопкам печати (для надежности)
+    document.addEventListener('click', function(e) {
+        const target = e.target.closest('a, button');
+        if (!target) return;
+        
+        if (target.classList.contains('print-btn') || 
+            target.classList.contains('btn-print') ||
+            target.getAttribute('data-action') === 'print' ||
+            (target.href && target.href.includes('print_label'))) {
+            console.log('🖨️ Нажата кнопка печати');
+        }
+    });
+
+    // Проверка при возврате на вкладку
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            // Проверяем, есть ли блокировка на странице
+            const hasBlock = document.querySelector('.subscription-notice') !== null;
+            const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+            
+            if (isAuthenticated && hasBlock) {
+                console.log('🔒 Обнаружена блокировка, обновляем');
+                location.reload(true);
+            }
+        }
+    });
+
+    console.log('🔒 Система защиты активирована');
+    </script>
+
+    <script>
+    // ========== ВЫБОР СОТРУДНИКА (AJAX) ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        // Функция для получения CSRF токена
+        function getCsrfToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+        }
+        
+        // Обработчик выбора сотрудника
+        document.querySelectorAll('.employee-select-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation(); // Останавливаем всплытие
+                
+                const employeeId = this.dataset.employeeId;
+                const employeeName = this.dataset.employeeName;
+                
+                // Показываем загрузку
+                const dropdownBtn = document.getElementById('employeeDropdown');
+                const originalText = dropdownBtn.innerHTML;
+                dropdownBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Загрузка...';
+                
+                // Отправляем AJAX запрос
+                fetch(`/employee-session/start/${employeeId}/ajax/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(),
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        establishment_id: {{ current_establishment.id|default:"null" }}
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Обновляем кнопку
+                        dropdownBtn.innerHTML = `<i class="fas fa-user-check me-1"></i> ${employeeName}`;
+                        dropdownBtn.className = 'nav-link dropdown-toggle text-success';
+                        
+                        // Обновляем активный элемент в списке
+                        document.querySelectorAll('.employee-select-item').forEach(el => {
+                            el.classList.remove('active', 'bg-success', 'text-white');
+                            const badge = el.querySelector('.badge');
+                            if (badge) badge.remove();
+                        });
+                        
+                        // Добавляем badge к выбранному
+                        const activeItem = document.querySelector(`[data-employee-id="${employeeId}"]`);
+                        if (activeItem) {
+                            activeItem.classList.add('active', 'bg-success', 'text-white');
+                            const badge = document.createElement('span');
+                            badge.className = 'badge bg-success ms-2';
+                            badge.textContent = 'Активен';
+                            activeItem.appendChild(badge);
+                        }
+                        
+                        // Добавляем кнопку "Завершить сессию" если ее нет
+                        const menu = document.getElementById('employeeDropdownMenu');
+                        const existingStopBtn = document.getElementById('stopEmployeeSession');
+                        
+                        if (!existingStopBtn) {
+                            const divider = document.createElement('li');
+                            divider.innerHTML = '<hr class="dropdown-divider">';
+                            menu.appendChild(divider);
+                            
+                            const stopItem = document.createElement('li');
+                            stopItem.innerHTML = `
+                                <a class="dropdown-item text-danger" href="#" id="stopEmployeeSession">
+                                    <i class="fas fa-stop me-2"></i>Завершить сессию
+                                </a>
+                            `;
+                            menu.appendChild(stopItem);
+                            
+                            // Добавляем обработчик для завершения
+                            document.getElementById('stopEmployeeSession').addEventListener('click', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                stopEmployeeSession();
+                            });
+                        }
+                        
+                        // ЗАКРЫВАЕМ ВЫПАДАЮЩИЙ СПИСОК
+                        const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('employeeDropdown'));
+                        if (dropdown) {
+                            dropdown.hide();
+                        } else {
+                            // Если Bootstrap не инициализирован
+                            const menu = document.getElementById('employeeDropdownMenu');
+                            if (menu) {
+                                menu.classList.remove('show');
+                            }
+                        }
+                        
+                        showNotification(`✅ Выбран сотрудник: ${employeeName}`, 'success');
+                    } else {
+                        dropdownBtn.innerHTML = originalText;
+                        showNotification(data.error || 'Ошибка при выборе сотрудника', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    dropdownBtn.innerHTML = originalText;
+                    showNotification('Ошибка при выборе сотрудника', 'error');
+                });
+            });
+        });
+        
+        // Функция завершения сессии
+        window.stopEmployeeSession = function() {
+            const dropdownBtn = document.getElementById('employeeDropdown');
+            const originalText = dropdownBtn.innerHTML;
+            dropdownBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Завершение...';
+            
+            fetch(`/employee-session/stop/ajax/?establishment={{ current_establishment.id }}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Обновляем кнопку
+                    dropdownBtn.innerHTML = `<i class="fas fa-user-clock me-1"></i> Выберите сотрудника`;
+                    dropdownBtn.className = 'nav-link dropdown-toggle text-warning';
+                    
+                    // Удаляем активный badge
+                    document.querySelectorAll('.employee-select-item').forEach(el => {
+                        el.classList.remove('active', 'bg-success', 'text-white');
+                        const badge = el.querySelector('.badge');
+                        if (badge) badge.remove();
+                    });
+                    
+                    // Удаляем кнопку "Завершить сессию"
+                    const stopBtn = document.getElementById('stopEmployeeSession');
+                    if (stopBtn) {
+                        const parent = stopBtn.closest('li');
+                        if (parent) {
+                            const divider = parent.previousElementSibling;
+                            if (divider && divider.querySelector('hr')) {
+                                divider.remove();
+                            }
+                            parent.remove();
+                        }
+                    }
+                    
+                    // Закрываем выпадающий список
+                    const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('employeeDropdown'));
+                    if (dropdown) {
+                        dropdown.hide();
+                    }
+                    
+                    showNotification('✅ Сессия сотрудника завершена', 'info');
+                } else {
+                    dropdownBtn.innerHTML = originalText;
+                    showNotification(data.error || 'Ошибка при завершении сессии', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                dropdownBtn.innerHTML = originalText;
+                showNotification('Ошибка при завершении сессии', 'error');
+            });
+        };
+        
+        // Функция для показа уведомлений
+        function showNotification(message, type) {
+            const alertClass = type === 'success' ? 'success' : 
+                            type === 'error' ? 'danger' : 
+                            type === 'info' ? 'info' : 'warning';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `alert alert-${alertClass} alert-dismissible fade show`;
+            messageDiv.style.cssText = 'position: fixed; top: 80px; right: 20px; z-index: 9999; min-width: 300px; max-width: 500px;';
+            messageDiv.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} me-2"></i>
+                    <div class="flex-grow-1">${message}</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.remove();
+                }
+            }, 4000);
+        }
+        
+        // Обработчик для существующей кнопки завершения (если есть)
+        const stopBtn = document.getElementById('stopEmployeeSession');
+        if (stopBtn) {
+            stopBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                stopEmployeeSession();
+            });
+        }
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!-- templates/labels/label_card.html -->
+<div class="col">
+    <div class="card label-card h-100" data-print-url="{% url 'print_label' label.id %}">
+        <div class="card-body pb-1">
+            <!-- Название и категория -->
+            <div class="d-flex justify-content-between align-items-start mb-1">
+                <h6 class="card-title label-name mb-0" title="{{ label.name }}">
+                    {{ label.name|truncatechars:50 }}
+                </h6>
+                <!-- {% if label.category %}
+                <span class="badge" style="background-color: {{ label.category.color }}; color: white; font-size: 0.6rem; flex-shrink: 0;">
+                    {{ label.category.name|truncatechars:10 }}
+                </span>
+                {% endif %} -->
+            </div>
+            
+            <!-- Информация о хранении -->
+            <div class="small text-muted">
+                <div class="d-flex justify-content-between">
+                    <span><i class="fas fa-thermometer-half me-1"></i>{{ label.storage_temperature|default:"-" }}</span>
+                    <span><i class="fas fa-clock me-1"></i>{{ label.get_storage_period_text }}</span>
+                </div>
+                {% if label.employee %}
+                <div class="mt-1">
+                    <small><i class="fas fa-user me-1"></i>{{ label.employee.name }}</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Полупрозрачные кнопки -->
+        <div class="card-footer bg-transparent border-top-0 pt-0 pb-2">
+            <div class="d-flex gap-1 justify-content-end label-actions">
+                <!-- Добавление в корзину -->
+                <div class="add-to-cart-form" data-label-id="{{ label.id }}">
+                    <button type="button" class="btn btn-success btn-xs add-to-cart-btn" title="В корзину">
+                        <i class="fas fa-cart-plus"></i>
+                    </button>
+                </div>
+                
+                <!-- Редактировать -->
+                <a href="{% url 'edit_label' label.id %}" 
+                   class="btn btn-outline-primary btn-xs"
+                   title="Редактировать">
+                    <i class="fas fa-edit"></i>
+                </a>
+                
+                <!-- Удалить -->
+                <form method="post" 
+                      action="{% url 'delete_label' label.id %}" 
+                      class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="btn btn-outline-danger btn-xs"
+                            title="Удалить"
+                            onclick="return confirm('Удалить маркировку \"{{ label.name }}\"?')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,70 @@
+{% extends "labels/base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Тестер API</h2>
+  <p class="text-muted">Ваш API-ключ (только для вас, никому не показывайте):</p>
+
+  <div class="input-group mb-3">
+    <input type="text" id="apiKey" class="form-control" value="{{ api_key.key }}" readonly>
+    <button class="btn btn-outline-secondary" onclick="copyKey()">Скопировать</button>
+  </div>
+
+  <p class="text-muted small">
+    Создан: {{ api_key.created_at|date:"d.m.Y H:i" }}<br>
+    Последнее использование: {{ api_key.last_used_at|default:"—" }}
+  </p>
+
+  <hr>
+
+  <h4>Проверка эндпоинтов</h4>
+
+  <div class="mb-3">
+    <label class="form-label">URL</label>
+    <input type="text" id="apiUrl" class="form-control" value="/api/me/">
+  </div>
+
+  <div class="mb-3">
+    <button class="btn btn-secondary" onclick="setUrl('/api/me/')">/api/me/</button>
+    <button class="btn btn-secondary" onclick="setUrl('/api/establishments/1/labels/')">/labels/ (est=1)</button>
+    <button class="btn btn-secondary" onclick="setUrl('/api/establishments/1/categories/')">/categories/ (est=1)</button>
+    <button class="btn btn-secondary" onclick="setUrl('/api/establishments/1/employees/')">/employees/ (est=1)</button>
+    <button class="btn btn-secondary" onclick="setUrl('/api/establishments/1/expired/')">/expired/ (est=1)</button>
+  </div>
+
+  <button class="btn btn-primary" onclick="sendRequest()">Отправить</button>
+
+  <h4 class="mt-4">Ответ:</h4>
+  <pre id="response" style="background:#f4f4f4;padding:1em;max-height:600px;overflow:auto;">—</pre>
+</div>
+
+<script>
+function copyKey() {
+  const input = document.getElementById('apiKey');
+  input.select();
+  navigator.clipboard.writeText(input.value);
+  alert('Ключ скопирован');
+}
+
+function setUrl(url) {
+  document.getElementById('apiUrl').value = url;
+}
+
+async function sendRequest() {
+  const key = document.getElementById('apiKey').value.trim();
+  const url = document.getElementById('apiUrl').value.trim();
+  const out = document.getElementById('response');
+  out.textContent = 'Загрузка...';
+
+  try {
+    const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + key } });
+    const text = await r.text();
+    let pretty;
+    try { pretty = JSON.stringify(JSON.parse(text), null, 2); }
+    catch { pretty = text; }
+    out.textContent = 'HTTP ' + r.status + '\n\n' + pretty;
+  } catch (e) {
+    out.textContent = 'Ошибка: ' + e;
+  }
+}
+</script>
+{% endblock %}

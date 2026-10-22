@@ -1,0 +1,138 @@
+{% extends 'labels/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Редактировать маркировку: {{ label.name }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" class="label-form">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            {{ form.name.label }} *
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="text-danger small">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">
+                            {{ form.category.label }}
+                        </label>
+                        {{ form.category }}
+                        <div class="form-text">
+                            Выберите категорию продукта
+                            {% if current_establishment %}
+                            <a href="{% url 'category_list' current_establishment.id %}" class="text-decoration-none">
+                                Управление категориями
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% if form.category.errors %}
+                        <div class="text-danger small">{{ form.category.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.storage_temperature.id_for_label }}" class="form-label">
+                            {{ form.storage_temperature.label }} *
+                        </label>
+                        {{ form.storage_temperature }}
+                        <div class="form-text">Например: +2°C до +6°C, не выше +4°C</div>
+                        {% if form.storage_temperature.errors %}
+                        <div class="text-danger small">{{ form.storage_temperature.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-8">
+                            <label for="{{ form.storage_duration.id_for_label }}" class="form-label">
+                                {{ form.storage_duration.label }} *
+                            </label>
+                            {{ form.storage_duration }}
+                        </div>
+                        <div class="col-4">
+                            <label for="{{ form.duration_unit.id_for_label }}" class="form-label">Ед.изм.</label>
+                            {{ form.duration_unit }}
+                        </div>
+                        {% if form.storage_duration.errors %}
+                        <div class="text-danger small">{{ form.storage_duration.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- ДОБАВЛЕН ВЫБОР СОТРУДНИКА
+                    <div class="mb-3">
+                        <label for="{{ form.employee.id_for_label }}" class="form-label">
+                            {{ form.employee.label }}
+                        </label>
+                        {{ form.employee }}
+                        <div class="form-text">
+                            Выберите сотрудника, который маркировал продукт. Если не выбран, будет указан ваш аккаунт.
+                            <a href="{% url 'employee_list' label.establishment.id %}" class="text-decoration-none">
+                                Управление сотрудниками
+                            </a>
+                        </div>
+                        {% if form.employee.errors %}
+                        <div class="text-danger small">{{ form.employee.errors }}</div>
+                        {% endif %}
+                    </div> -->
+                    
+                    <!-- <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.use_manual_time }}
+                            <label class="form-check-label" for="{{ form.use_manual_time.id_for_label }}">
+                                {{ form.use_manual_time.label }}
+                            </label>
+                            <div class="form-text">{{ form.use_manual_time.help_text }}</div>
+                        </div>
+                    </div> -->
+
+                    <div class="mb-3 manual-time-field" id="manual-time-field" style="display: none;">
+                        <label for="{{ form.manual_print_time.id_for_label }}" class="form-label">
+                            {{ form.manual_print_time.label }}
+                        </label>
+                        {{ form.manual_print_time }}
+                        <div class="form-text">{{ form.manual_print_time.help_text }}</div>
+                        {% if form.manual_print_time.errors %}
+                        <div class="text-danger small">{{ form.manual_print_time.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                        <a href="{% url 'home' %}?establishment={{ label.establishment.id }}" class="btn btn-secondary">Отмена</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const useManualTime = document.getElementById('{{ form.use_manual_time.id_for_label }}');
+    const manualTimeField = document.getElementById('manual-time-field');
+    
+    function toggleManualTimeField() {
+        if (useManualTime && manualTimeField) {
+            if (useManualTime.checked) {
+                manualTimeField.style.display = 'block';
+            } else {
+                manualTimeField.style.display = 'none';
+            }
+        }
+    }
+    
+    if (useManualTime) {
+        useManualTime.addEventListener('change', toggleManualTimeField);
+        toggleManualTimeField(); // Initial state
+    }
+});
+</script>
+{% endblock %}

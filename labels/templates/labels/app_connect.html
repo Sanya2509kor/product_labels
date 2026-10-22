@@ -1,0 +1,257 @@
+{% extends "labels/base.html" %}
+
+{% block title %}Подключение приложения{% endblock %}
+
+{% block content %}
+<div class="container mt-4" style="max-width: 900px;">
+
+  <h2 class="mb-3">
+    <i class="fas fa-mobile-alt me-2"></i>
+    Подключение приложения
+  </h2>
+
+  <p class="lead">
+    Приложение FoodSafe для Windows работает оффлайн, но для получения
+    ваших заведений, маркировок и сотрудников ему нужен API-ключ.
+  </p>
+
+<!-- ==== ВИДЕО-ИНСТРУКЦИЯ ==== -->
+{% if video_url %}
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-video me-2"></i>
+            {{ video_title }}
+        </h5>
+    </div>
+    <div class="card-body">
+        <p>Посмотрите видео-инструкцию.</p>
+        
+        <div class="video-container" style="position: relative; background: #000; border-radius: 8px; overflow: hidden;">
+            <video 
+                id="instructionVideo"
+                controls
+                preload="metadata"
+                poster="{{ video_poster }}"
+                style="width: 100%; height: auto; display: block; max-height: 70vh;"
+                controlsList="nodownload">
+                <source src="{{ video_url }}" type="video/mp4">
+                Ваш браузер не поддерживает видео. 
+                <a href="{{ video_url }}" download>Скачать видео</a>
+            </video>
+        </div>
+        
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="text-muted small">
+                <i class="fas fa-info-circle me-1"></i>
+                Если видео не загружается — проверьте интернет или 
+                <a href="{{ video_url }}" download>скачайте его</a>.
+            </div>
+            <button class="btn btn-sm btn-outline-primary" onclick="toggleFullscreen()">
+                <i class="fas fa-expand me-1"></i>На весь экран
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleFullscreen() {
+    const video = document.getElementById('instructionVideo');
+    if (video.requestFullscreen) {
+        video.requestFullscreen();
+    } else if (video.webkitRequestFullscreen) {
+        video.webkitRequestFullscreen();
+    } else if (video.msRequestFullscreen) {
+        video.msRequestFullscreen();
+    }
+}
+
+// Ускорение воспроизведения (опционально)
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('instructionVideo');
+    if (video) {
+        // Автоматически останавливаем другие видео при запуске
+        video.addEventListener('play', function() {
+            console.log('Видео запущено');
+        });
+        
+        // Запоминаем позицию просмотра
+        video.addEventListener('timeupdate', function() {
+            if (video.currentTime > 0 && !video.paused) {
+                localStorage.setItem('instructionVideoTime', video.currentTime);
+            }
+        });
+        
+        // Восстанавливаем позицию при загрузке
+        const savedTime = localStorage.getItem('instructionVideoTime');
+        if (savedTime && savedTime < video.duration) {
+            video.currentTime = parseFloat(savedTime);
+        }
+    }
+});
+</script>
+{% endif %}
+  <!-- ==== ШАГ 1. КЛЮЧ ==== -->
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">
+        <i class="fas fa-key me-2"></i>
+        Шаг 1. Ваш API-ключ
+      </h5>
+    </div>
+    <div class="card-body">
+
+      <p>Скопируйте этот ключ — он понадобится при первом запуске приложения.</p>
+
+      <div class="input-group mb-3">
+        <input type="text"
+               id="apiKeyInput"
+               class="form-control"
+               value="{{ api_key.key }}"
+               readonly
+               style="font-family: monospace; font-size: 14px;">
+        <button class="btn btn-primary"
+                type="button"
+                onclick="copyApiKey()">
+          <i class="fas fa-copy me-1"></i> Скопировать
+        </button>
+      </div>
+
+      <p class="text-muted small mb-3">
+        <i class="fas fa-info-circle me-1"></i>
+        Никому не показывайте этот ключ — тот, у кого он есть, получит доступ
+        ко всем данным вашего аккаунта.
+      </p>
+
+      <p class="text-muted small">
+        Создан: {{ api_key.created_at|date:"d.m.Y H:i" }}<br>
+        Последнее использование:
+        {{ api_key.last_used_at|date:"d.m.Y H:i"|default:"—" }}
+      </p>
+
+      <form method="post"
+            onsubmit="return confirm('Старый ключ перестанет работать. Продолжить?');">
+        {% csrf_token %}
+        <button type="submit"
+                name="regenerate"
+                class="btn btn-outline-danger btn-sm">
+          <i class="fas fa-sync me-1"></i> Сгенерировать новый ключ
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==== ШАГ 2. СКАЧАТЬ ==== -->
+  <div class="card mb-4">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0">
+        <i class="fas fa-download me-2"></i>
+        Шаг 2. Скачайте приложение
+      </h5>
+    </div>
+    <div class="card-body">
+      <p>Скачайте архив с приложением на планшет и распакуйте его
+         в удобную папку (например, <code>D:\FoodSafe\</code>).</p>
+
+      <a href="{{ download_url }}"
+         target="_blank"
+         class="btn btn-success">
+        <i class="fas fa-download me-1"></i>
+        Скачать FoodSafe {{ app_version }}
+      </a>
+
+      <p class="text-muted small mt-3 mb-0">
+        <i class="fas fa-exclamation-triangle me-1"></i>
+        Не распаковывайте в <code>C:\Program Files\</code> —
+        Windows может запретить запись данных.
+      </p>
+    </div>
+  </div>
+
+  <!-- ==== ШАГ 3. ЗАПУСК ==== -->
+  <div class="card mb-4">
+    <div class="card-header bg-warning text-dark">
+      <h5 class="mb-0">
+        <i class="fas fa-play me-2"></i>
+        Шаг 3. Запустите приложение и введите ключ
+      </h5>
+    </div>
+    <div class="card-body">
+      <ol>
+        <li>Распакуйте архив.</li>
+        <li>Откройте папку <code>FoodSafe</code>.</li>
+        <li>Дважды кликните <code>FoodSafe.exe</code>. Антивирус Windows может ругаться при первом запуске, нажимаем <b>"Подробнее"</b> и <b>"Выполнить в любом случае"</b>. Программа без вирусов</li>
+        <li>В поле <b>«API-ключ»</b> вставьте ключ из шага 1.</li>
+        <li>Нажмите <b>«Подключиться и синхронизировать»</b>.</li>
+      </ol>
+
+      <p class="mb-0">После синхронизации приложение работает оффлайн —
+         интернет нужен только при нажатии кнопки «Синхронизация».</p>
+    </div>
+  </div>
+
+  <!-- ==== ШАГ 4. ПРИНТЕР ==== -->
+  <div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+      <h5 class="mb-0">
+        <i class="fas fa-print me-2"></i>
+        Шаг 4. Настройте принтер, если еще не настроили
+      </h5>
+    </div>
+    <div class="card-body">
+      <ol>
+        <li>Установите драйвер AiYin IP802, ссылка внизу страницы</li>
+        <li>В «Устройства и принтеры» создайте размер бумаги
+            <b>58 × 60 мм</b></li>
+        <li>В приложении нажмите <b>⚙ Настройки</b> →
+            выберите принтер → сохраните.</li>
+        <li>Попробуйте напечатать одну маркировку и корзину. Если принтер
+            пропускает этикетки — увеличьте «Пауза между этикетками» в настройках приложения.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ==== Ссылки ==== -->
+  <div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+      <h5 class="mb-0">
+        <i class="fas fa-play me-2"></i>
+        Если остались вопросы или есть предложения, пишите...
+      </h5>
+    </div>
+    <div class="card-body">
+      <ol>
+        <li>ВК: https://vk.ru/korchemkin2002</li>
+        <li>Телеграм: https://t.me/I_L0ve_y0u_baby или @I_L0ve_y0u_baby</li>
+        <li>Почта: Korchemkins0@yandex.ru</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ==== ССЫЛКИ ==== -->
+  <div class="d-flex gap-2 mb-4 flex-wrap">
+    <a href="{% url 'home' %}" class="btn btn-secondary">
+      <i class="fas fa-arrow-left me-1"></i> На главную
+    </a>
+    <!-- <a href="{% url 'api_tester' %}" class="btn btn-outline-secondary">
+      <i class="fas fa-vial me-1"></i> Тестер API
+    </a> -->
+  </div>
+
+</div>
+
+<script>
+function copyApiKey() {
+  const input = document.getElementById('apiKeyInput');
+  input.select();
+  input.setSelectionRange(0, 99999);
+  try {
+    navigator.clipboard.writeText(input.value);
+    alert('Ключ скопирован в буфер обмена');
+  } catch (e) {
+    document.execCommand('copy');
+    alert('Ключ скопирован');
+  }
+}
+</script>
+{% endblock %}

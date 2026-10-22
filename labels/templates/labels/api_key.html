@@ -1,0 +1,64 @@
+{% extends "labels/base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Тестер API</h2>
+
+  <div class="input-group mb-3">
+    <input type="text" id="apiKey" class="form-control" value="{{ api_key.key }}" readonly>
+    <button class="btn btn-outline-secondary" onclick="copyKey()">Скопировать</button>
+  </div>
+
+  <div class="mb-3">
+    <input type="text" id="apiUrl" class="form-control" value="/api/me/">
+  </div>
+
+  <div class="mb-3">
+    <button class="btn btn-secondary btn-sm" onclick="setUrl('/api/me/')">/api/me/</button>
+    <button class="btn btn-secondary btn-sm" onclick="setUrl('/api/establishments/1/labels/')">/labels/</button>
+    <button class="btn btn-secondary btn-sm" onclick="setUrl('/api/establishments/1/categories/')">/categories/</button>
+    <button class="btn btn-secondary btn-sm" onclick="setUrl('/api/establishments/1/employees/')">/employees/</button>
+    <button class="btn btn-secondary btn-sm" onclick="setUrl('/api/establishments/1/cart/')">/cart/</button>
+  </div>
+
+  <button class="btn btn-primary" onclick="sendRequest()">Отправить</button>
+
+  <pre id="response" style="background:#f4f4f4;padding:1em;max-height:600px;overflow:auto;margin-top:1em;">—</pre>
+</div>
+
+<script>
+function copyKey() {
+  var input = document.getElementById('apiKey');
+  input.select();
+  navigator.clipboard.writeText(input.value);
+  alert('Ключ скопирован');
+}
+
+function setUrl(url) {
+  document.getElementById('apiUrl').value = url;
+}
+
+function sendRequest() {
+  var key = document.getElementById('apiKey').value.trim();
+  var url = document.getElementById('apiUrl').value.trim();
+  var out = document.getElementById('response');
+
+  out.textContent = 'Загрузка...';
+
+  var sep = url.indexOf('?') === -1 ? '?' : '&';
+  var fullUrl = url + sep + 'key=' + encodeURIComponent(key);
+
+  fetch(fullUrl)
+    .then(function(r) {
+      return r.text().then(function(text) {
+        var pretty;
+        try { pretty = JSON.stringify(JSON.parse(text), null, 2); }
+        catch (e) { pretty = text; }
+        out.textContent = 'HTTP ' + r.status + '\n\n' + pretty;
+      });
+    })
+    .catch(function(e) {
+      out.textContent = 'Ошибка: ' + e;
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Маркировка: {{ label.name }}</title>
+    <style>
+        @media print {
+            @page {
+                margin: 0;
+                size: 58mm 60mm;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: Arial, sans-serif;
+                font-size: 12px;
+                width: 58mm;
+                height: 60mm;
+                background: #fff;
+            }
+            .no-print {
+                display: none !important;
+            }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+            width: 58mm;
+            height: 60mm;
+            background: #fff;
+            box-sizing: border-box;
+        }
+        
+        .label-container {
+            text-align: center;
+            padding: 4px 6px 2px 6px;
+            width: 58mm;
+            height: 60mm;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            /* justify-content: space-between; */
+        }
+        
+        /* ===== НАЗВАНИЕ ===== */
+        .product-name {
+            font-weight: 900;
+            font-size: 15px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            line-height: 1.2;
+            word-break: break-word;
+            color: #000;
+        }
+        
+        /* ===== СЕКЦИИ ===== */
+        .label-section {
+            margin: 4px 0;
+            padding: 3px 0;
+            border-bottom: 1.5px solid #000;
+        }
+        
+        .label-section:last-of-type {
+            border-bottom: none;
+        }
+        
+        /* ===== СТРОКИ ===== */
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 2px 0;
+            padding: 0px 0;
+        }
+        
+        .label-title {
+            font-weight: 700;
+            text-align: left;
+            font-size: 11px;
+            color: #000;
+            letter-spacing: 0.2px;
+        }
+        
+        .label-value {
+            text-align: right;
+            font-weight: 600;
+            font-size: 11px;
+            color: #000;
+        }
+        
+        /* ===== ДАТА-ВРЕМЯ (ОСОБО ВЫДЕЛЕНО) ===== */
+        .datetime {
+            font-weight: 900;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            color: #000;
+            padding: 0px 0;
+        }
+        
+        .label-section .label-value.datetime {
+            font-size: 15px;
+            font-weight: 900;
+        }
+        
+        /* ===== ФУТЕР ===== */
+        .footer {
+            margin-top: 2px;
+            font-size: 11px;
+            border-top: none;
+            padding-top: 2px;
+            font-weight: 700;
+            color: #000;
+            letter-spacing: 0.3px;
+        }
+        
+        /* ===== КНОПКИ ДЛЯ ЭКРАНА ===== */
+        .no-print {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+        }
+        
+        .no-print button {
+            padding: 12px 30px;
+            margin: 5px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            background: #007bff;
+            color: #fff;
+        }
+        
+        .no-print button:hover {
+            background: #0056b3;
+        }
+        
+        .no-print button:last-child {
+            background: #6c757d;
+        }
+        
+        .no-print button:last-child:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="label-container">
+        <!-- ===== НАЗВАНИЕ ===== -->
+        <div class="product-name">
+            {{ label.name }}
+        </div>
+        
+        <!-- ===== ДАТА МАРКИРОВКИ ===== -->
+        <div class="label-section">
+            <div class="label-row">
+                <span class="label-title">Дата и время маркировки:</span>
+            </div>
+            <div class="label-value datetime">{{ print_time_str }}</div>
+        </div>
+        
+        <!-- ===== ТЕМПЕРАТУРА И СРОК ===== -->
+        <div class="label-section">
+            <div class="label-row">
+                <span class="label-title">Темп. хранения:</span>
+                <span class="label-value">{{ label.storage_temperature }}</span>
+            </div>
+            <div class="label-row">
+                <span class="label-title">Срок хранения:</span>
+                <span class="label-value">{{ label.get_storage_period_text }}</span>
+            </div>
+        </div>
+        
+        <!-- ===== ГОДЕН ДО ===== -->
+        <div class="label-section" style="padding-bottom: 0px;">
+            <div class="label-row">
+                <span class="label-title" style="font-size: 12px;">Годен до:</span>
+            </div>
+            <div class="label-value datetime" style="font-size: 14px; color: #000;">
+                {{ expiration_time_str }}
+            </div>
+        </div>
+        
+        <!-- ===== ФУТЕР ===== -->
+        <div class="footer">
+            <div>Маркировал: {% if marking_person %}{{ marking_person }}{% else %}{{ label.get_marking_person }}{% endif %}</div>
+        </div>
+    </div>
+    
+    <!-- ===== КНОПКИ ===== -->
+    <div class="no-print">
+        <button onclick="window.print()">🖨️ Печать</button>
+        <button onclick="closeAndRefresh()">✖ Закрыть</button>
+    </div>
+
+    <script>
+    function goBackWithRefresh() {
+        console.log('🔄 Возврат с обновлением');
+        const referrer = document.referrer;
+        if (referrer) {
+            const url = new URL(referrer);
+            url.searchParams.set('from_print', 'true');
+            window.location.href = url.toString();
+        } else {
+            window.location.href = '/?from_print=true';
+        }
+    }
+    
+    function closeAndRefresh() {
+        goBackWithRefresh();
+    }
+    
+    window.onload = function() {
+        setTimeout(function() {
+            window.print();
+        }, 400);
+    };
+    
+    window.onafterprint = function() {
+        setTimeout(function() {
+            goBackWithRefresh();
+        }, 500);
+    };
+    </script>
+</body>
+</html>

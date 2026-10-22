@@ -1,0 +1,16 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls %}
+
+{% block object-tools %}
+{{ block.super }}
+{% if show_copy_button %}
+<ul class="object-tools">
+    <li>
+        <a href="{% url 'admin:labels_establishment_copy_data' %}" class="addlink" 
+           style="background: #28a745; color: white;">
+            📋 Копировать данные между заведениями
+        </a>
+    </li>
+</ul>
+{% endif %}
+{% endblock %}

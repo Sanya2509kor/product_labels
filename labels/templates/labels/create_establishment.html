@@ -1,0 +1,50 @@
+{% extends 'labels/base.html' %}
+
+{% block title %}Создание заведения{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Создание нового заведения</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">Название заведения</label>
+                        {{ form.name }}
+                        <div class="form-text">Например: "Кафе Уютное", "Ресторан Восточная кухня" и т.д.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.timezone.id_for_label }}" class="form-label">
+                            <strong>Часовой пояс *</strong>
+                        </label>
+                        {{ form.timezone }}
+                        <div class="form-text">
+                            {% if messages %}
+                                {% for message in messages %}
+                                    {% if "часовой пояс" in message.message %}
+                                        <div class="alert alert-info mt-2">
+                                            {{ message }}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            Выберите ваш регион для корректного отображения времени
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Создать заведение</button>
+                        <a href="{% url 'join_establishment' %}" class="btn btn-secondary">Присоединиться к существующему</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

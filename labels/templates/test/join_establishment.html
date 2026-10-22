@@ -1,0 +1,31 @@
+{% extends 'labels/base.html' %}
+
+{% block title %}Присоединение к заведению{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Присоединение к заведению</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.invite_code.id_for_label }}" class="form-label">Код приглашения</label>
+                        {{ form.invite_code }}
+                        <div class="form-text">Попросите код приглашения у владельца заведения</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Присоединиться</button>
+                        <a href="{% url 'create_establishment' %}" class="btn btn-secondary">Создать новое заведение</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

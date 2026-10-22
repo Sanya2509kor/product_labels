@@ -1,0 +1,87 @@
+{% extends 'labels/base.html' %}
+
+{% block title %}Редактировать категорию - {{ establishment.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        Редактировать категорию
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Заведение: <strong>{{ establishment.name }}</strong>
+                    </p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                {{ form.name.label }} *
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="text-danger small">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.color.id_for_label }}" class="form-label">
+                                {{ form.color.label }}
+                            </label>
+                            <div class="d-flex align-items-center">
+                                {{ form.color }}
+                                <span class="ms-2">Текущий цвет: 
+                                    <span class="badge" style="background-color: {{ category.color }}; color: white;">
+                                        {{ category.color }}
+                                    </span>
+                                </span>
+                            </div>
+                            {% if form.color.errors %}
+                            <div class="text-danger small">{{ form.color.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.order.id_for_label }}" class="form-label">
+                                {{ form.order.label }}
+                            </label>
+                            {{ form.order }}
+                            {% if form.order.errors %}
+                            <div class="text-danger small">{{ form.order.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                Статус: 
+                                <span class="badge {% if category.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ category.is_active|yesno:"Активна,Неактивна" }}
+                                </span>
+                                <br>
+                                Чтобы изменить статус, используйте кнопку активации/деактивации в списке категорий.
+                            </small>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Сохранить изменения
+                            </button>
+                            <a href="{% url 'category_list' establishment.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
