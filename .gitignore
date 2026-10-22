@@ -2,3 +2,4 @@ media/
 *.zip
 static/
 *.sql
+.env
