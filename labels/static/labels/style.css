@@ -1,0 +1,686 @@
+:root {
+    --primary-color: #2563eb;
+    --primary-dark: #1d4ed8;
+    --secondary-color: #64748b;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --light-bg: #f8fafc;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.6;
+    color: #334155;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+/* Header */
+.app-header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--primary-color) !important;
+}
+
+.brand-text {
+    background: linear-gradient(135deg, var(--primary-color), #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.establishment-selector {
+    background: var(--light-bg);
+    border-radius: 8px;
+    padding: 0.5rem 1rem !important;
+    border: 1px solid #e2e8f0;
+    font-weight: 500;
+}
+
+.user-menu {
+    background: var(--light-bg);
+    border-radius: 8px;
+    padding: 0.5rem 1rem !important;
+}
+
+.navbar-toggler {
+    border: none;
+    padding: 0.5rem;
+    color: var(--primary-color);
+}
+
+/* Main Content */
+.app-main {
+    min-height: calc(100vh - 140px);
+    padding: 2rem 0;
+}
+
+.messages-container {
+    max-width: 1200px;
+    margin: 0 auto 2rem;
+    padding: 0 1rem;
+}
+
+.alert {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+}
+
+.alert-icon {
+    font-size: 1.2rem;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d1fae5, #ecfdf5);
+    color: #065f46;
+    border-left: 4px solid var(--success-color);
+}
+
+.alert-error, .alert-danger {
+    background: linear-gradient(135deg, #fee2e2, #fef2f2);
+    color: #991b1b;
+    border-left: 4px solid var(--danger-color);
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #dbeafe, #eff6ff);
+    color: #1e40af;
+    border-left: 4px solid var(--primary-color);
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fef3c7, #fffbeb);
+    color: #92400e;
+    border-left: 4px solid var(--warning-color);
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow-hover);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    border-radius: 16px 16px 0 0 !important;
+    border: none;
+    padding: 1.5rem;
+}
+
+.card-header h4, .card-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Forms */
+.form-control, .form-select {
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.form-text {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Buttons */
+.btn {
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(37, 99, 235, 0.3);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #64748b, #475569);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+/* Labels List */
+.labels-list {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.label-item {
+    border-left: 4px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.label-item:hover {
+    border-left-color: var(--success-color);
+    transform: translateX(4px);
+}
+
+.label-actions .btn-group-vertical {
+    min-width: 120px;
+}
+
+/* Badges */
+.badge {
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+}
+
+/* Welcome Section */
+.welcome-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+}
+
+.feature-list li {
+    padding: 0.5rem 0;
+    font-weight: 500;
+}
+
+.feature-list li::before {
+    content: "✓";
+    color: var(--success-color);
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+/* Footer */
+.app-footer {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1.5rem 0;
+    margin-top: auto;
+}
+
+/* Print Label Styles */
+@media print {
+    body {
+        background: white !important;
+        font-size: 12px;
+    }
+    
+    .label-container {
+        border: 2px solid #000;
+        padding: 10px;
+        width: 80mm;
+        height: 100mm;
+    }
+    
+    .no-print {
+        display: none !important;
+    }
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .app-main {
+        padding: 1rem 0;
+    }
+    
+    .container-fluid {
+        padding: 0 0.5rem;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .card-header {
+        padding: 1rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .label-actions .btn-group-vertical {
+        flex-direction: row;
+        gap: 0.5rem;
+        min-width: auto;
+    }
+    
+    .label-actions .btn {
+        flex: 1;
+        margin-bottom: 0;
+    }
+    
+    .navbar-nav .btn {
+        width: auto;
+        margin: 0.25rem;
+    }
+    
+    .establishment-selector, .user-menu {
+        margin: 0.5rem 0;
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+    
+    .form-control, .form-select {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .labels-list {
+        max-height: 50vh;
+    }
+}
+
+/* Custom Scrollbar */
+.labels-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.labels-list::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.labels-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.labels-list::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+/* Utility Classes */
+.gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.shadow-soft {
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.spinner {
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid var(--primary-color);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+/* Добавьте в style.css */
+
+/* Mobile Menu Improvements */
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(20px);
+        border-radius: 0 0 16px 16px;
+        margin-top: 1rem;
+        padding: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .dropdown-menu {
+        border: none;
+        background: rgba(248, 250, 252, 0.9);
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .dropdown-item {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin: 0.25rem 0;
+    }
+    
+    .dropdown-item.active {
+        background: var(--primary-color);
+    }
+    
+    .nav-link {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin: 0.25rem 0;
+    }
+    
+    .navbar-nav .btn {
+        margin: 0.5rem 0;
+        text-align: center;
+    }
+    
+    .establishment-selector,
+    .user-menu {
+        width: 100%;
+        text-align: left;
+        margin: 0.5rem 0;
+    }
+    
+    /* Mobile dropdown animation */
+    .dropdown-menu {
+        animation: slideDown 0.2s ease-out;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+/* Active state for navbar toggler */
+.navbar-toggler.active .fa-bars::before {
+    content: "\f00d"; /* times icon */
+}
+
+/* Better touch targets for mobile */
+@media (max-width: 576px) {
+    .btn, .nav-link, .dropdown-item {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .form-control, .form-select {
+        min-height: 44px;
+    }
+}
+
+/* Prevent body scroll when mobile menu is open */
+body.menu-open {
+    overflow: hidden;
+}
+
+/* Enhanced dropdown styling */
+.dropdown-menu {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem;
+}
+
+.dropdown-item {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateX(4px);
+}
+
+/* Добавьте в конец файла style.css */
+
+/* Fix for navbar z-index */
+.app-header {
+    position: relative;
+    z-index: 1030; /* Bootstrap использует 1030 для navbar */
+}
+
+.navbar {
+    z-index: 1030;
+}
+
+.navbar-collapse {
+    z-index: 1030;
+}
+
+.dropdown-menu {
+    z-index: 1050 !important; /* Важно для отображения поверх всего */
+}
+
+/* Ensure navbar is above all content */
+.app-main {
+    position: relative;
+    z-index: 1;
+}
+
+/* Specific fixes for mobile menu */
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1040;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(20px);
+    }
+    
+    .dropdown-menu {
+        position: static !important;
+        transform: none !important;
+        border: none;
+        background: rgba(248, 250, 252, 0.9);
+    }
+}
+
+/* Ensure user dropdown appears above everything */
+.navbar-nav .dropdown-menu {
+    z-index: 1060 !important;
+}
+
+/* Добавьте в style.css */
+
+/* Fix navbar z-index */
+.app-header {
+    position: relative;
+    z-index: 1030;
+}
+
+.navbar {
+    position: relative;
+    z-index: 1030;
+}
+
+/* Ensure dropdowns appear above content */
+.navbar .dropdown-menu {
+    z-index: 1050 !important;
+    position: absolute;
+}
+
+/* Mobile menu fixes */
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1040;
+        background: white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .dropdown-menu {
+        position: static !important;
+        float: none;
+        border: none;
+        background: rgba(248, 250, 252, 0.9);
+    }
+}
+
+/* Стили для AJAX сообщений */
+.messages-container {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+}
+
+.messages-container .alert {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Стили для кнопок загрузки */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Стили для боковой панели категорий */
+.list-group-item {
+    border: none;
+    padding: 0.75rem 1rem;
+}
+
+.list-group-item.active {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.category-filter .badge {
+    font-size: 0.7rem;
+}
+
+/* Анимации */
+.list-group-item {
+    transition: all 0.2s ease;
+}
+
+.list-group-item:hover {
+    transform: translateX(3px);
+}
