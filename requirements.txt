@@ -109,3 +109,5 @@ xkit==0.0.0
 zipp==1.0.0
 zope.interface==5.4.0
 zopfli==0.2.3.post1
+gunicorn
+python-dotenv

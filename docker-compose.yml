@@ -1,0 +1,17 @@
+services:
+  web:
+    build: .
+    restart: always
+    ports:
+      - "127.0.0.1:8003:8000" # <--- ВАЖНО: порт 8003 (свободен)
+    env_file:
+      - .env
+    volumes:
+      - ./.env:/app/.env
+      - ./static:/app/static
+      - ./media:/app/media
+
+networks:
+  default:
+    external: true
+    name: santa_test_default # Подключаем к общей сети, где живет база
