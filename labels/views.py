@@ -18,6 +18,7 @@ import requests
 from .models import UserApiKey, PrintJob
 from datetime import datetime
 from django.views.decorators.http import require_GET, require_POST
+from django.conf import settings
 
 
 BOT_TOKEN = '8228987290:AAGHfqjLrWvTZl1QleOTwfk3X-rRFP9wA2M'
@@ -1502,29 +1503,27 @@ def api_key_regenerate(request):
 @login_required
 def app_connect(request):
     """Страница с API-ключом и инструкцией для подключения приложения."""
-    # Создаём ключ, если его ещё нет
     api_key = UserApiKey.get_or_create_for(request.user)
 
-    # Регенерация по кнопке
     if request.method == 'POST' and 'regenerate' in request.POST:
         UserApiKey.regenerate_for(request.user)
-        messages.success(
-            request,
-            'API-ключ обновлён. Старый ключ больше не работает.'
-        )
+        messages.success(request, 'API-ключ обновлён. Старый ключ больше не работает.')
         return redirect('app_connect')
 
-    # Ссылка на скачивание приложения (можно хранить в settings или прямо тут)
-    download_url = 'https://checkin-site.tw1.ru/FoodSafe.zip'  # ваш «Драйвер»
+    download_url = 'https://markirovki24.ru/media/FoodSafe.zip'
+    app_version = '1.1'
 
-    # Версия приложения для инструкции
-    app_version = '1.0'
-
-    return render(request, 'labels/app_connect.html', {
+    # Добавляем контекст для видео из настроек
+    context = {
         'api_key': api_key,
         'download_url': download_url,
         'app_version': app_version,
-    })
+        'video_url': settings.VIDEO_INSTRUCTION_URL,
+        'video_poster': settings.VIDEO_INSTRUCTION_POSTER,
+        'video_title': settings.VIDEO_INSTRUCTION_TITLE,
+    }
+
+    return render(request, 'labels/app_connect.html', context)
 
 
 # views.py

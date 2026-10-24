@@ -127,3 +127,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 VIDEO_INSTRUCTION_URL = '/media/video/foodsafе_install.mp4'  # путь к видео
 VIDEO_INSTRUCTION_POSTER = '/media/video/poster.jpg'  # превью (картинка)
 VIDEO_INSTRUCTION_TITLE = 'Видео-инструкция'
+
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://markirovki24.ru',
+    'https://www.markirovki24.ru',
+]
